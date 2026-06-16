@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 #include "patricia.h"
 
 struct PatriciaNode {
@@ -170,4 +171,29 @@ int buscar(PatriciaNode * nodo, const char * palavra) {
     nodo=nodo->irmao;
   }
   return 0;
+}
+
+void imprimir(PatriciaNode *raiz, int nivel) {
+  while (raiz != NULL) {
+    for (int i = 0; i < nivel; i++) {
+      printf("  ");
+    }
+    printf("%s", raiz->texto);
+    if (raiz->ehFinal) {
+      printf(" *");
+    }
+    printf("\n");
+    imprimir(raiz->filho, nivel + 1);
+    raiz = raiz->irmao;
+  }
+}
+
+void liberar_trie(PatriciaNode * raiz) {
+  if (!raiz) return;
+
+  liberar_trie(raiz->filho);
+  liberar_trie(raiz->irmao);
+
+  free(raiz->texto);
+  free(raiz);
 }

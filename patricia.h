@@ -11,6 +11,6 @@ void inserir(PatriciaNode **raiz, const char *palavra);
 int buscar(PatriciaNode *raiz, const char *palavra);
 
 void imprimir(PatriciaNode *raiz, int nivel);
-void destruir(PatriciaNode *raiz);
+void liberar_trie(PatriciaNode *raiz);
 
 #endif
