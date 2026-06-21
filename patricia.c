@@ -192,6 +192,92 @@ Nodo *inserir(Nodo *raiz, const char *chave) {
   return raiz;
 }
 
+Nodo *remover(Nodo *raiz, const char *chave) {
+  if (!raiz || !chave) return raiz;
+
+  int tamanho = strlen(chave);
+  Nodo *t = raiz->esquerda;
+  Nodo *x = raiz;
+
+  // Procurar o nodo que contém a chave
+  while (t->indice_bit > x->indice_bit) {
+    x = t;
+    int bit = pegar_bit_seguro(chave, t->indice_bit, tamanho);
+    t = (bit == 0) ? t->esquerda : t->direita;
+  }
+
+  // Se não encontrar a chave, devolve a árvore inalterada
+  if (!t->chave || strcmp(t->chave, chave) != 0) {
+    return raiz;
+  }
+
+  // Caso 1: O nodo 't' é estrutural (aponta pra si mesmo)
+  if (x == t) {
+    // Procurar 'q', o pai direto (ponteiro descendente) de 't'
+    Nodo *q = raiz;
+    Nodo *r = raiz->esquerda;
+    while (r != t) {
+      q = r;
+      int bit = pegar_bit_seguro(t->chave, r->indice_bit, strlen(t->chave));
+      r = (bit == 0) ? r->esquerda : r->direita;
+    }
+
+    // Identificar o outro filho de 't'
+    Nodo *t_outro = (t->esquerda == t) ? t->direita : t->esquerda;
+
+    // Fazer 'q' ignorar 't'
+    if (q->esquerda == t) q->esquerda = t_outro;
+    else q->direita = t_outro;
+
+    free(t->chave);
+    free(t);
+    return raiz;
+  }
+
+  // Caso 2: 'x' != 't'. 't' é um nó interno na estrutura descendente.
+  // Movemos a chave de 'x' para 't' e removemos o nó 'x' fisicamente.
+
+  // Procurar 'q', o pai direto (ponteiro descendente) de 'x'
+  Nodo *q = raiz;
+  Nodo *r = raiz->esquerda;
+  while (r != x) {
+    q = r;
+    int bit = pegar_bit_seguro(x->chave, r->indice_bit, strlen(x->chave));
+    r = (bit == 0) ? r->esquerda : r->direita;
+  }
+
+  // Procurar 'z', o nó que possui o ponteiro cíclico/ascendente para 'x'
+  Nodo *z = raiz;
+  Nodo *w = raiz->esquerda;
+  while (w->indice_bit > z->indice_bit) {
+    z = w;
+    int bit = pegar_bit_seguro(x->chave, w->indice_bit, strlen(x->chave));
+    w = (bit == 0) ? w->esquerda : w->direita;
+  }
+
+  // Copiar os dados de 'x' para 't'
+  free(t->chave);
+  t->chave = strdup(x->chave);
+
+  Nodo *x_outro = (x->esquerda == t) ? x->direita : x->esquerda;
+
+  // Reajustar os ponteiros para isolar e remover 'x'
+  if (z == x) {
+    if (q->esquerda == x) q->esquerda = t;
+    else q->direita = t;
+  } else {
+    if (q->esquerda == x) q->esquerda = x_outro;
+    else q->direita = x_outro;
+
+    if (z->esquerda == x) z->esquerda = t;
+    else z->direita = t;
+  }
+
+  free(x->chave);
+  free(x);
+  return raiz;
+}
+
 static void liberar_nodos_recursivo(Nodo *atual) {
   if (!atual) return;
 
