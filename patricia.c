@@ -196,85 +196,85 @@ Nodo *remover(Nodo *raiz, const char *chave) {
   if (!raiz || !chave) return raiz;
 
   int tamanho = strlen(chave);
-  Nodo *t = raiz->esquerda;
-  Nodo *x = raiz;
+  Nodo *anterior = raiz;
+  Nodo *atual = raiz->esquerda;
 
   // Procurar o nodo que contém a chave
-  while (t->indice_bit > x->indice_bit) {
-    x = t;
-    int bit = pegar_bit_seguro(chave, t->indice_bit, tamanho);
-    t = (bit == 0) ? t->esquerda : t->direita;
+  while (atual->indice_bit > anterior->indice_bit) {
+    anterior = atual;
+    int bit = pegar_bit_seguro(chave, atual->indice_bit, tamanho);
+    atual = (bit == 0) ? atual->esquerda : atual->direita;
   }
 
   // Se não encontrar a chave, devolve a árvore inalterada
-  if (!t->chave || strcmp(t->chave, chave) != 0) {
+  if (!atual->chave || strcmp(atual->chave, chave) != 0) {
     return raiz;
   }
 
-  // Caso 1: O nodo 't' é estrutural (aponta pra si mesmo)
-  if (x == t) {
-    // Procurar 'q', o pai direto (ponteiro descendente) de 't'
+  // Caso 1: O nodo 'atual' é estrutural (aponta pra si mesmo)
+  if (anterior == atual) {
+    // Procurar 'q', o pai direto (ponteiro descendente) de 'atual'
     Nodo *q = raiz;
     Nodo *r = raiz->esquerda;
-    while (r != t) {
+    while (r != atual) {
       q = r;
-      int bit = pegar_bit_seguro(t->chave, r->indice_bit, strlen(t->chave));
+      int bit = pegar_bit_seguro(atual->chave, r->indice_bit, strlen(atual->chave));
       r = (bit == 0) ? r->esquerda : r->direita;
     }
 
-    // Identificar o outro filho de 't'
-    Nodo *t_outro = (t->esquerda == t) ? t->direita : t->esquerda;
+    // Identificar o outro filho de 'atual'
+    Nodo *t_outro = (atual->esquerda == atual) ? atual->direita : atual->esquerda;
 
-    // Fazer 'q' ignorar 't'
-    if (q->esquerda == t) q->esquerda = t_outro;
+    // Fazer 'q' ignorar 'atual'
+    if (q->esquerda == atual) q->esquerda = t_outro;
     else q->direita = t_outro;
 
-    free(t->chave);
-    free(t);
+    free(atual->chave);
+    free(atual);
     return raiz;
   }
 
-  // Caso 2: 'x' != 't'. 't' é um nó interno na estrutura descendente.
-  // Movemos a chave de 'x' para 't' e removemos o nó 'x' fisicamente.
+  // Caso 2: 'anterior' != 't'. 't' é um nó interno na estrutura descendente.
+  // Movemos a chave de 'anterior' para 't' e removemos o nó 'anterior' fisicamente.
 
-  // Procurar 'q', o pai direto (ponteiro descendente) de 'x'
+  // Procurar 'q', o pai direto (ponteiro descendente) de 'anterior'
   Nodo *q = raiz;
   Nodo *r = raiz->esquerda;
-  while (r != x) {
+  while (r != anterior) {
     q = r;
-    int bit = pegar_bit_seguro(x->chave, r->indice_bit, strlen(x->chave));
+    int bit = pegar_bit_seguro(anterior->chave, r->indice_bit, strlen(anterior->chave));
     r = (bit == 0) ? r->esquerda : r->direita;
   }
 
-  // Procurar 'z', o nó que possui o ponteiro cíclico/ascendente para 'x'
+  // Procurar 'z', o nó que possui o ponteiro cíclico/ascendente para 'anterior'
   Nodo *z = raiz;
   Nodo *w = raiz->esquerda;
   while (w->indice_bit > z->indice_bit) {
     z = w;
-    int bit = pegar_bit_seguro(x->chave, w->indice_bit, strlen(x->chave));
+    int bit = pegar_bit_seguro(anterior->chave, w->indice_bit, strlen(anterior->chave));
     w = (bit == 0) ? w->esquerda : w->direita;
   }
 
-  // Copiar os dados de 'x' para 't'
+  // Copiar os dados de 'anterior' para 't'
   free(t->chave);
-  t->chave = strdup(x->chave);
+  t->chave = strdup(anterior->chave);
 
-  Nodo *x_outro = (x->esquerda == t) ? x->direita : x->esquerda;
+  Nodo *x_outro = (anterior->esquerda == t) ? anterior->direita : anterior->esquerda;
 
-  // Reajustar os ponteiros para isolar e remover 'x'
-  if (z == x) {
-    if (q->esquerda == x) q->esquerda = t;
+  // Reajustar os ponteiros para isolar e remover 'anterior'
+  if (z == anterior) {
+    if (q->esquerda == anterior) q->esquerda = t;
     else q->direita = t;
   } else {
-    if (q->esquerda == x) q->esquerda = x_outro;
+    if (q->esquerda == anterior) q->esquerda = x_outro;
     else q->direita = x_outro;
 
-    if (z->esquerda == x) z->esquerda = t;
+    if (z->esquerda == anterior) z->esquerda = t;
     else z->direita = t;
   }
 
-  free(x->chave);
-  free(x);
+  free(anterior->chave);
+  free(anterior);
   return raiz;
 }
 
